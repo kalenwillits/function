@@ -7,29 +7,33 @@ use std::ffi::OsString;
 use std::fs;
 use std::path::PathBuf;
 use std::collections::HashMap;
-
+use std::io::{self, Write};
 use home;
 
 fn load_functions(cache: &mut HashMap<OsString, OsString>, dir: &mut PathBuf) -> Result<(), String> {
     dir.push("run");
-    for function in fs::read_dir(dir).expect("unable to read dir") {
+    for function in fs::read_dir(dir).expect("Unable to read dir") {
         if let Ok(function_path) = function {
             if let Some(function_name) = function_path.path().file_stem() {
                 cache.insert(function_name.to_os_string(), function_path.path().into_os_string());
             }
 
         };
-
-       
     }
-    println!("{:?}", cache);
-        Ok(())
+    Ok(())
 }
 
 
-fn use_arg(cache: &HashMap<OsString, OsString>, key: OsString) {
-    Command::new(&cache[&key]).output().expect("Failure");
+fn use_arg(cache: &HashMap<OsString, OsString>, key: OsString, args: &[String]) {
+    let output = Command::new("sh")
+        .arg(&cache[&key])
+        .args(args)
+        .output()
+        .expect("Failed to execute function");
+    io::stdout().write_all(&output.stdout).expect("Unable to write to stdout");
+    io::stderr().write_all(&output.stderr).expect("Unable to write to stderr");
 }
+
 
 pub fn run(args: Vec<String>) -> Result<(), String> {
     let mut cache: HashMap<OsString, OsString> = HashMap::new();
@@ -44,13 +48,13 @@ pub fn run(args: Vec<String>) -> Result<(), String> {
 
         } else {
             let key = OsString::from(&args[1]);
+            println!("{:?}", &cache[&key]);
             if cache.contains_key(&key) {
-                use_arg(&cache, key);
+                use_arg(&cache, key, &args[2..]);
             }
         }
     } else {
         return Err(String::from("No arguments supplied."));
     }
-
     Ok(())
 }
