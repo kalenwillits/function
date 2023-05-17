@@ -22,6 +22,11 @@ fn exec_list() -> Result<(), String> {
     run(vec![String::from("/home/user/dummy"), String::from("--list")])
 }
 
+#[test]
+fn exec_version() -> Result<(), String> {
+    run(vec![String::from("/home/user/dummy"), String::from("--version")])
+}
+
 
 #[test]
 fn exec_missing() {
