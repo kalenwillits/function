@@ -1,78 +1,56 @@
+#[cfg(test)]
+mod tests;
+
 use std::env;
+use std::process::Command;
+use std::ffi::OsString;
+use std::fs;
+use std::path::PathBuf;
+use std::collections::HashMap;
 
+use home;
 
-const HELP_ARG: Vec<String> = vec![String::from("-h"), String::from("--help")];
-const NEW_ARG: Vec<String> = vec![String::from("-n"), String::from("--new")];
-const INFO_ARG: Vec<String> = vec![String::from("-i"), String::from("--info")];
+fn load_functions(cache: &mut HashMap<OsString, OsString>, dir: &mut PathBuf) -> Result<(), String> {
+    dir.push("run");
+    for function in fs::read_dir(dir).expect("unable to read dir") {
+        if let Ok(function_path) = function {
+            if let Some(function_name) = function_path.path().file_stem() {
+                cache.insert(function_name.to_os_string(), function_path.path().into_os_string());
+            }
 
+        };
 
-
-enum AppState {
-    Help,
-    Info(String),
-    New,
-    Std,
+       
+    }
+    println!("{:?}", cache);
+        Ok(())
 }
 
 
-
-struct Args {
-    data: Vec<String>
+fn use_arg(cache: &HashMap<OsString, OsString>, key: OsString) {
+    Command::new(&cache[&key]).output().expect("Failure");
 }
 
+pub fn run(args: Vec<String>) -> Result<(), String> {
+    let mut cache: HashMap<OsString, OsString> = HashMap::new();
+    load_functions(&mut cache, &mut home::home_dir().expect("Unable to locate home dir"))?;
+    load_functions(&mut cache, &mut env::current_dir().expect("Unable to gather working dir"))?;
+    if args.len() > 1 {
+        if (args[1] == "-l") | (args[1] == "--list") {
+            for (key, value) in cache {
+                println!("{}: {}", key.to_str().expect("Could not unwrap key"), value.to_str().expect("Could not unwrap value"));
+            }
+        } else if (args[1] == "-n") | (args[1] == "--new") {
 
-impl Args {
-    pub fn new(&self) -> Self {
-       Self {
-            data: env::args().collect()    
-        } 
-    }
-
-    fn is_help(&self) -> bool {
-        HELP_ARG.iter()
-            .filter(|&arg| self.data
-                .contains(arg))
-            .collect::<Vec<_>>()
-            .len() > 1
-    }
-
-    fn is_new(&self) -> bool {
-        NEW_ARG.iter()
-            .filter(|&arg| self.data
-                .contains(arg))
-            .collect::<Vec<_>>()
-            .len() > 1
-    }
-
-
-    fn is_info(&self) -> bool {
-        INFO_ARG.iter()
-            .filter(|&arg| self.data
-                .contains(arg))
-            .collect::<Vec<_>>()
-            .len() > 1
-    }
-
-
-    pub fn state(&self) -> AppState {
-        if self.is_help() {
-            return AppState::Help;
-        } else if self.is_new() { 
-            return AppState::New;            
-        } else if self.is_info() {
-            return AppState::Info(function_name);
         } else {
-            return AppState::Std;
+            let key = OsString::from(&args[1]);
+            if cache.contains_key(&key) {
+                use_arg(&cache, key);
+            }
         }
+    } else {
+        return Err(String::from("No arguments supplied."));
     }
-}
 
-
-pub fn run(Args) -> Result<(), String> {
-    match Args.state {
-        AppState::Help => use_help(),
-        AppState::New => use_new(),
-        AppState::Info(function_name) => use_info(function_name),
-        AppState::Std => use_std(),
-    }
+    Ok(())
 }
