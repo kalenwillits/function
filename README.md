@@ -4,13 +4,23 @@
 
 Function is a simple CLI program written in Rust for Linux to manage shell scripts and create
 shorthand commands for workflow automations.
-see [run-scripts](https://github.com/Kilthunox/run-scripts) for example automations.
+See [run-scripts](https://github.com/Kilthunox/run-scripts) for example automations.
+
+
 
 
 ## Build from source
 ### Dependencies
 - Install [Rust](https://www.rust-lang.org/tools/install)
 - Linux/Unix OS
+
+
+To install, execute the install below commands or continue on to the "Compile" section.
+```
+git clone https://github.com/kalenwillits/function.git;
+cd function;
+./run/install.sh;
+```
 
 ### Compile
 Compile from source using cargo
@@ -45,7 +55,7 @@ printf "#!/bin/bash \necho $1" > echo.sh
 
 4. Restart the terminal.
 
-5. Test that it worked by running:
+5. Verify the installation.
 ```
 fn --verison
 ```
