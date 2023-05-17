@@ -32,8 +32,3 @@ fn exec_version() -> Result<(), String> {
 fn exec_missing() {
     assert!(!run(vec![String::from("/home/user/dummy"), String::from("non-existant-function-1231231251")]).is_err())
 }
-
-
-
-
-
