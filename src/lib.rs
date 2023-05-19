@@ -26,14 +26,30 @@ fn load_functions(cache: &mut HashMap<OsString, OsString>, dir: &mut PathBuf) ->
 }
 
 
-fn use_arg(cache: &HashMap<OsString, OsString>, key: OsString, args: &[String]) {
-    let output = Command::new("sh")
-        .arg(&cache[&key])
-        .args(args)
-        .output()
-        .expect("Failed to execute function");
-    io::stdout().write_all(&output.stdout).expect("Unable to write to stdout");
-    io::stderr().write_all(&output.stderr).expect("Unable to write to stderr");
+fn use_arg(cache: &HashMap<OsString, OsString>, args: &[String]) {
+    let key = OsString::from(&args[1]);
+    if cache.contains_key(&key) {
+        let output = Command::new("sh")
+            .arg(&cache[&key])
+            .args(args)
+            .output()
+            .expect("Failed to execute function");
+        io::stdout().write_all(&output.stdout).expect("Unable to write to stdout");
+        io::stderr().write_all(&output.stderr).expect("Unable to write to stderr");
+    }
+}
+
+fn use_list(cache: &HashMap<OsString, OsString>) {
+    for (key, value) in cache {
+        println!(
+            "{}: {}", 
+            key.to_str()
+            .expect("Could not unwrap key"), 
+            value
+            .to_str()
+            .expect("Could not unwrap value"));
+            }
+
 }
 
 
@@ -41,28 +57,12 @@ pub fn run(args: Vec<String>) -> Result<(), String> {
     let mut cache: HashMap<OsString, OsString> = HashMap::new();
     let _ = load_functions(&mut cache, &mut home::home_dir().expect("Unable to locate home dir"));
     let _ = load_functions(&mut cache, &mut env::current_dir().expect("Unable to gather working dir"));
-    if args.len() > 1 {
-        if (args[1] == "-v") | (args[1] == "--version") {
-            println!("function version {}", env::var("CARGO_PKG_VERSION")
-                .expect("Unable to gather package version"));
-        } else if (args[1] == "-l") | (args[1] == "--list") {
-            for (key, value) in cache {
-                println!(
-                    "{}: {}", 
-                    key.to_str()
-                        .expect("Could not unwrap key"), 
-                    value
-                        .to_str()
-                        .expect("Could not unwrap value"));
-            }
-        } else {
-            let key = OsString::from(&args[1]);
-            if cache.contains_key(&key) {
-                use_arg(&cache, key, &args[2..]);
-            }
-        }
+    if args.len() == 1usize {
+        use_list(&cache);
+    }  else if args[1] == "--version" {
+      println!("function version {}", env::var("CARGO_PKG_VERSION").expect("Unable to gather version"));
     } else {
-        return Err(String::from("No arguments supplied"));
+        use_arg(&cache, &args[2..]);
     }
     Ok(())
 }
