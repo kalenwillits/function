@@ -15,7 +15,7 @@ See [run-scripts](https://github.com/Kilthunox/run-scripts) for example automati
 - Linux/Unix OS
 
 
-To install, execute the install below commands or continue on to the "Compile" section.
+To install, execute the install below commands or clone and continue on to the "Compile" section.
 ```
 git clone https://github.com/kalenwillits/function.git;
 cd function;

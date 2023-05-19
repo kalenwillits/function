@@ -10,8 +10,6 @@ use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process::Command;
 
-const VERSION: &str = "1.0.0";
-
 fn load_functions(cache: &mut HashMap<OsString, OsString>, dir: &mut PathBuf) -> Result<(), String> {
     dir.push("run");
     if dir.is_dir() {
@@ -45,7 +43,8 @@ pub fn run(args: Vec<String>) -> Result<(), String> {
     let _ = load_functions(&mut cache, &mut env::current_dir().expect("Unable to gather working dir"));
     if args.len() > 1 {
         if (args[1] == "-v") | (args[1] == "--version") {
-            println!("function version {}", VERSION);
+            println!("function version {}", env::var("CARGO_PKG_VERSION")
+                .expect("Unable to gather package version"));
         } else if (args[1] == "-l") | (args[1] == "--list") {
             for (key, value) in cache {
                 println!(
