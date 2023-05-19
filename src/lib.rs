@@ -10,6 +10,9 @@ use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process::Command;
 
+static VERSION: &str = env!("CARGO_PKG_VERSION");
+
+
 fn load_functions(cache: &mut HashMap<OsString, OsString>, dir: &mut PathBuf) -> Result<(), String> {
     dir.push("run");
     if dir.is_dir() {
@@ -60,7 +63,7 @@ pub fn run(args: Vec<String>) -> Result<(), String> {
     if args.len() == 1usize {
         use_list(&cache);
     }  else if args[1] == "--version" {
-      println!("function version {}", env::var("CARGO_PKG_VERSION").expect("Unable to gather version"));
+      println!("function version {VERSION}");
     } else {
         use_arg(&cache, &args[2..]);
     }
