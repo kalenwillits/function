@@ -29,8 +29,7 @@ fn load_functions(cache: &mut HashMap<OsString, OsString>, dir: &mut PathBuf) ->
 }
 
 
-fn use_arg(cache: &HashMap<OsString, OsString>, args: &[String]) {
-    let key = OsString::from(&args[1]);
+fn use_arg(cache: &HashMap<OsString, OsString>, key: OsString, args: &[String]) {
     if cache.contains_key(&key) {
         let output = Command::new("sh")
             .arg(&cache[&key])
@@ -39,6 +38,8 @@ fn use_arg(cache: &HashMap<OsString, OsString>, args: &[String]) {
             .expect("Failed to execute function");
         io::stdout().write_all(&output.stdout).expect("Unable to write to stdout");
         io::stderr().write_all(&output.stderr).expect("Unable to write to stderr");
+    } else {
+        eprintln!("No function [{}] available", key.to_str().expect("Unable to unwrap key"));
     }
 }
 
@@ -56,7 +57,7 @@ fn use_list(cache: &HashMap<OsString, OsString>) {
 }
 
 
-pub fn run(args: Vec<String>) -> Result<(), String> {
+pub fn run(args: &Vec<String>) -> Result<(), String> {
     let mut cache: HashMap<OsString, OsString> = HashMap::new();
     let _ = load_functions(&mut cache, &mut home::home_dir().expect("Unable to locate home dir"));
     let _ = load_functions(&mut cache, &mut env::current_dir().expect("Unable to gather working dir"));
@@ -65,7 +66,8 @@ pub fn run(args: Vec<String>) -> Result<(), String> {
     }  else if args[1] == "--version" {
       println!("function version {VERSION}");
     } else {
-        use_arg(&cache, &args[2..]);
+        let key = OsString::from(&args[1]);
+        use_arg(&cache, key, &args[2..]);
     }
     Ok(())
 }
