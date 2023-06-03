@@ -43,6 +43,7 @@ fn use_arg(
             .args([&cache[&key]])
             .args(args)
             .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .spawn()?
             .stdout
             .ok_or_else(|| IOError::new(ErrorKind::Other, "Could not capture standard output."))?;
