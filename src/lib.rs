@@ -1,15 +1,14 @@
 #[cfg(test)]
 mod tests;
 
+
 use home;
 use std::collections::HashMap;
 use std::env;
 use std::error::Error;
 use std::ffi::OsString;
 use std::fs;
-use std::io::{BufRead, BufReader, Error as IOError, ErrorKind};
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
 
 static VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -39,28 +38,10 @@ fn use_arg(
     args: &[String],
 ) -> Result<(), Box<dyn Error>> {
     if cache.contains_key(&key) {
-        let stdout = Command::new("sh")
-            .args([&cache[&key]])
-            .args(args)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?
-            .stdout
-            .ok_or_else(|| IOError::new(ErrorKind::Other, "Could not capture standard output."))?;
-
-        let reader = BufReader::new(stdout);
-
-        reader
-            .lines()
-            .filter_map(|line| line.ok())
-            .filter(|line| line.find("usb").is_some())
-            .for_each(|line| println!("{}", line));
-
-    } else {
-        eprintln!(
-            "No function [{}] available",
-            key.to_str().expect("Unable to unwrap key")
-        );
+        std::process::Command::new ("sh")
+        .args([&cache[&key]])
+        .args(args)
+        .status()?;
     }
     Ok(())
 }
